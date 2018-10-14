@@ -36,4 +36,4 @@ COPY solution.py tf_models model.py ./
 ENV DUCKIETOWN_SERVER=evaluator
 
 # let's see what you've got there...
-CMD python solution.py
+CMD ./solution.py
