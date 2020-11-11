@@ -17,6 +17,5 @@ COPY solution.py ./
 COPY tf_models /submission/tf_models
 COPY model.py ./
 
-
 # let's see what you've got there...
 ENTRYPOINT ["python3", "solution.py"]
