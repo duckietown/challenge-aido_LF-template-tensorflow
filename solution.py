@@ -25,7 +25,7 @@ def check_tensorflow_gpu():
         if not name:  # None or ''
             msg = 'Could not find gpu device.'
             logger.error(msg)
-            raise Exception(msg)
+            #raise Exception(msg)
 
 
 class TensorflowTemplateAgent:
