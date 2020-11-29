@@ -3,7 +3,9 @@
 
 protocol: aido2_db18_agent-z2
 user-label: "template-tensorflow"
-user-payload: {}
+user-payload:
+    features_required:
+        gpu: 1
 description: |
     This is a simple template for an agent that uses Tensorflow for inference.
 
