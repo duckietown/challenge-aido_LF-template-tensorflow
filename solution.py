@@ -12,6 +12,7 @@ from model import TfInference
 
 expect_shape = (480, 640, 3)
 
+
 class TensorflowTemplateAgent:
     current_image: np.ndarray
     model: TfInference
