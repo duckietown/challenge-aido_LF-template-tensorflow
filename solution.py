@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 
 from aido_schemas import (Context, DB20Commands, DB20Observations, EpisodeStart, JPGImage, LEDSCommands,
-                          logger, protocol_agent_DB20, PWMCommands, RGB, wrap_direct)
+                          protocol_agent_DB20, PWMCommands, RGB, wrap_direct)
 from model import TfInference
 
 expect_shape = (480, 640, 3)
