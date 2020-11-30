@@ -19,8 +19,8 @@ class TensorflowTemplateAgent:
 
     def init(self, context: Context):
         context.info('Checking GPU availability...')
-        self.check_tensorflow_gpu(context)
         limit_gpu_memory()
+        self.check_tensorflow_gpu(context)
 
         from model import TfInference
 
