@@ -2,35 +2,37 @@
 
 import io
 import os
+from typing import Tuple
 
 import numpy as np
 from PIL import Image
 
 from aido_schemas import (Context, DB20Commands, DB20Observations, EpisodeStart, JPGImage, LEDSCommands,
-                          protocol_agent_DB20, PWMCommands, RGB, wrap_direct)
-from model import TfInference
-
-expect_shape = (480, 640, 3)
+                          logger, protocol_agent_DB20, PWMCommands, RGB, wrap_direct)
 
 
 class TensorflowTemplateAgent:
     current_image: np.ndarray
-    model: TfInference
 
-    def __init__(self, load_model=False, model_path=None):
-        pass
+    def __init__(self, expect_shape: Tuple[int, int, int] = (480, 640, 3)):
+        self.expect_shape = expect_shape
 
     def init(self, context: Context):
-        context.info('Check GPU avaialbility...')
+        context.info('Checking GPU availability...')
         self.check_tensorflow_gpu(context)
-        context.info('init()')
+        limit_gpu_memory()
+
+        from model import TfInference
+
+        # this is the folder where our models are
+        graph_location = 'tf_models/'
         # define observation and output shapes
-        self.model = TfInference(observation_shape=(1,) + expect_shape,
+        self.model = TfInference(observation_shape=(1,) + self.expect_shape,
                                  # this is the shape of the image we get.
                                  action_shape=(1, 2),  # we need to output v, omega.
-                                 graph_location='tf_models/')  # this is the folder where our models are
+                                 graph_location=graph_location)
         # stored.
-        self.current_image = np.zeros(expect_shape)
+        self.current_image = np.zeros(self.expect_shape)
 
     def check_tensorflow_gpu(self, context: Context):
         req = os.environ.get('AIDO_REQUIRE_GPU', None)
@@ -83,6 +85,21 @@ def jpg2rgb(image_data: bytes) -> np.ndarray:
     assert data.ndim == 3
     assert data.dtype == np.uint8
     return data
+
+
+def limit_gpu_memory(memory_limit: int = 1024):
+    """ Restricts TensorFlow to only allocated 1GB of memory on the first GPU"""
+    import tensorflow as tf
+    physical_gpus = tf.config.experimental.list_physical_devices('GPU')
+    if physical_gpus:
+        try:
+            c = [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=memory_limit)]
+            tf.config.experimental.set_virtual_device_configuration(physical_gpus[0], c)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            logger.info(num_physical_gpus=len(physical_gpus), num_logical_gpus=len(logical_gpus))
+        except RuntimeError as e:
+            # Virtual devices must be set before GPUs have been initialized
+            logger.error(e)
 
 
 def main():
