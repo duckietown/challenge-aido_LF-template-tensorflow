@@ -1,6 +1,5 @@
 # Definition of Submission container
-ARG AIDO_REGISTRY=docker.io
-FROM ${AIDO_REGISTRY}/duckietown/dt-machine-learning-base-environment:daffy-amd64
+FROM frank1chude1qian/dt-machine-learning-base-environment:daffy-amd64
 
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
