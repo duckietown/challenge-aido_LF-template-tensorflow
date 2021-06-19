@@ -7,8 +7,20 @@ from typing import Tuple
 import numpy as np
 from PIL import Image
 
-from aido_schemas import (Context, DB20Commands, DB20Observations, EpisodeStart, JPGImage, LEDSCommands,
-                          logger, protocol_agent_DB20, PWMCommands, RGB, wrap_direct)
+from aido_schemas import (
+    Context,
+    DB20Commands,
+    DB20Observations,
+    EpisodeStart,
+    JPGImage,
+    LEDSCommands,
+    logger,
+    no_hardware_GPU_available,
+    protocol_agent_DB20,
+    PWMCommands,
+    RGB,
+    wrap_direct,
+)
 
 
 class TensorflowTemplateAgent:
@@ -18,33 +30,32 @@ class TensorflowTemplateAgent:
         self.expect_shape = expect_shape
 
     def init(self, context: Context):
-        context.info('Checking GPU availability...')
+        context.info("Checking GPU availability...")
         limit_gpu_memory()
         self.check_tensorflow_gpu(context)
 
         from model import TfInference
 
         # this is the folder where our models are
-        graph_location = 'tf_models/'
+        graph_location = "tf_models/"
         # define observation and output shapes
-        self.model = TfInference(observation_shape=(1,) + self.expect_shape,
-                                 # this is the shape of the image we get.
-                                 action_shape=(1, 2),  # we need to output v, omega.
-                                 graph_location=graph_location)
+        self.model = TfInference(
+            observation_shape=(1,) + self.expect_shape,
+            # this is the shape of the image we get.
+            action_shape=(1, 2),  # we need to output v, omega.
+            graph_location=graph_location,
+        )
         # stored.
         self.current_image = np.zeros(self.expect_shape)
 
     def check_tensorflow_gpu(self, context: Context):
-        req = os.environ.get('AIDO_REQUIRE_GPU', None)
 
         import tensorflow as tf
+
         name = tf.test.gpu_device_name()
-        context.info(f'gpu_device_name: {name!r} AIDO_REQUIRE_GPU = {req!r}')
-        if req is not None:
-            if not name:  # None or ''
-                msg = 'Could not find gpu device.'
-                context.error(msg)
-                raise RuntimeError(msg)
+        context.info(f"gpu_device_name: {name!r} ")
+        if not name:  # None or ''
+            no_hardware_GPU_available(context)
 
     def on_received_seed(self, data: int):
         np.random.seed(data)
@@ -70,17 +81,17 @@ class TensorflowTemplateAgent:
         led_commands = LEDSCommands(grey, grey, grey, grey, grey)
         pwm_commands = PWMCommands(motor_left=pwm_left, motor_right=pwm_right)
         commands = DB20Commands(pwm_commands, led_commands)
-        context.write('commands', commands)
+        context.write("commands", commands)
 
     def finish(self, context: Context):
-        context.info('finish()')
+        context.info("finish()")
 
 
 def jpg2rgb(image_data: bytes) -> np.ndarray:
-    """ Reads JPG bytes as RGB"""
+    """Reads JPG bytes as RGB"""
 
     im = Image.open(io.BytesIO(image_data))
-    im = im.convert('RGB')
+    im = im.convert("RGB")
     data = np.array(im)
     assert data.ndim == 3
     assert data.dtype == np.uint8
@@ -88,14 +99,15 @@ def jpg2rgb(image_data: bytes) -> np.ndarray:
 
 
 def limit_gpu_memory(memory_limit: int = 1024):
-    """ Restricts TensorFlow to only allocated 1GB of memory on the first GPU"""
+    """Restricts TensorFlow to only allocated 1GB of memory on the first GPU"""
     import tensorflow as tf
-    physical_gpus = tf.config.experimental.list_physical_devices('GPU')
+
+    physical_gpus = tf.config.experimental.list_physical_devices("GPU")
     if physical_gpus:
         try:
             c = [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=memory_limit)]
             tf.config.experimental.set_virtual_device_configuration(physical_gpus[0], c)
-            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            logical_gpus = tf.config.experimental.list_logical_devices("GPU")
             logger.info(num_physical_gpus=len(physical_gpus), num_logical_gpus=len(logical_gpus))
         except RuntimeError as e:
             # Virtual devices must be set before GPUs have been initialized
@@ -108,5 +120,5 @@ def main():
     wrap_direct(node=node, protocol=protocol)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
