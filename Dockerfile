@@ -21,4 +21,4 @@ COPY tf_models /submission/tf_models
 COPY model.py ./
 
 
-ENTRYPOINT ["python3", "solution.py"]
+CMD ["python3", "solution.py"]
