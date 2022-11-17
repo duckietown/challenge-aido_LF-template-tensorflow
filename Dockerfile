@@ -10,6 +10,9 @@ ARG PIP_INDEX_URL="https://pypi.org/simple"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 
 # Setup any additional pip packages
+COPY requirements.pin.txt .
+RUN python3 -m pip install --no-cache-dir -r requirements.pin.txt
+
 COPY requirements.* ./
 RUN cat requirements.* > .requirements.txt
 RUN python3 -m pip install --no-cache-dir -r .requirements.txt
